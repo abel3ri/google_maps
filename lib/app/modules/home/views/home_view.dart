@@ -1,32 +1,49 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps/core/controllers/location_controller.dart';
+import 'package:google_maps/core/widgets/r_card.dart';
 
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
-  final Completer<GoogleMapController> _controller =
-      Completer<GoogleMapController>();
-
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
   HomeView({super.key});
+  final LocationController locationController = Get.find<LocationController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
+      body: Center(
+        child: Obx(
+          () => locationController.isLoading.isTrue
+              ? CircularProgressIndicator()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    RCard(
+                        child: TextButton(
+                      onPressed: () async {
+                        await locationController.getUserPosition(
+                            onPositionSet: () {
+                          Get.toNamed("/map");
+                        });
+                      },
+                      child: const Text("Business Direction"),
+                    )),
+                    SizedBox(height: Get.height * 0.02),
+                    RCard(
+                      child: TextButton(
+                        onPressed: () {
+                          locationController.getUserPosition(onPositionSet: () {
+                            Get.toNamed("/search-location");
+                          });
+                        },
+                        child: Text("Search Location"),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
